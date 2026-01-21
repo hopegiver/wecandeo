@@ -7,11 +7,14 @@ export default {
             filters: {
                 search: '',
                 status: '',
-                category: '',
                 sort: 'date_desc'
             },
             selectedVideos: [],
+            selectedFolder: 'all',
+            selectedCategory: null,
             videos: [],
+            folders: [],
+            categories: [],
             totalVideos: 0,
             currentPage: 1,
             perPage: 12,
@@ -20,6 +23,20 @@ export default {
     },
 
     computed: {
+        currentFolderName() {
+            if (this.selectedCategory) {
+                const cat = this.categories.find(c => c.id === this.selectedCategory);
+                return cat ? cat.name : '미디어 보관함';
+            }
+            const folder = this.folders.find(f => f.id === this.selectedFolder);
+            return folder ? folder.name : '미디어 보관함';
+        },
+
+        filteredCount() {
+            // TODO: 실제 필터링된 개수 계산
+            return this.totalVideos;
+        },
+
         displayPages() {
             const pages = [];
             const maxPages = 5;
@@ -42,10 +59,41 @@ export default {
     },
 
     async mounted() {
+        await this.loadFolders();
+        await this.loadCategories();
         await this.loadVideos();
     },
 
     methods: {
+        async loadFolders() {
+            // TODO: API 호출로 실제 데이터 로드
+            // const response = await this.$api.get('/api/media/folders');
+
+            // 임시 데이터
+            this.folders = [
+                { id: 'all', name: '전체 동영상', count: 1247 },
+                { id: 'marketing', name: '마케팅', count: 324 },
+                { id: 'tutorial', name: '튜토리얼', count: 156 },
+                { id: 'product', name: '제품 소개', count: 89 },
+                { id: 'internal', name: '내부용', count: 45 },
+                { id: 'events', name: '이벤트', count: 67 }
+            ];
+        },
+
+        async loadCategories() {
+            // TODO: API 호출로 실제 데이터 로드
+            // const response = await this.$api.get('/api/media/categories');
+
+            // 임시 데이터
+            this.categories = [
+                { id: 'promo', name: '프로모션', color: '#6366f1', count: 234 },
+                { id: 'guide', name: '가이드', color: '#10b981', count: 189 },
+                { id: 'demo', name: '데모', color: '#f59e0b', count: 145 },
+                { id: 'case', name: '사례', color: '#ec4899', count: 98 },
+                { id: 'news', name: '뉴스', color: '#8b5cf6', count: 76 }
+            ];
+        },
+
         async loadVideos() {
             // TODO: API 호출로 실제 데이터 로드
             // const response = await this.$api.get('/api/media/videos', { params: this.getFilterParams() });
@@ -147,6 +195,54 @@ export default {
                     encodingStatus: 'completed',
                     encodedVersions: ['1080p', '720p', '480p'],
                     tags: ['튜토리얼', '온보딩']
+                },
+                {
+                    id: 9,
+                    title: '웨비나 녹화본',
+                    thumbnail: 'https://via.placeholder.com/320x180/06b6d4/ffffff?text=Video+9',
+                    duration: '45:20',
+                    uploadDate: '2024-01-07',
+                    views: 32145,
+                    size: '1.2 GB',
+                    encodingStatus: 'completed',
+                    encodedVersions: ['1080p', '720p'],
+                    tags: ['이벤트', '웨비나']
+                },
+                {
+                    id: 10,
+                    title: 'Q&A 세션',
+                    thumbnail: 'https://via.placeholder.com/320x180/84cc16/ffffff?text=Video+10',
+                    duration: '25:15',
+                    uploadDate: '2024-01-06',
+                    views: 28456,
+                    size: '850 MB',
+                    encodingStatus: 'completed',
+                    encodedVersions: ['1080p', '720p', '480p'],
+                    tags: ['이벤트', 'Q&A']
+                },
+                {
+                    id: 11,
+                    title: '분기 실적 발표',
+                    thumbnail: 'https://via.placeholder.com/320x180/a855f7/ffffff?text=Video+11',
+                    duration: '18:40',
+                    uploadDate: '2024-01-05',
+                    views: 15234,
+                    size: '620 MB',
+                    encodingStatus: 'completed',
+                    encodedVersions: ['1080p', '720p'],
+                    tags: ['내부용', '발표']
+                },
+                {
+                    id: 12,
+                    title: '고객 인터뷰',
+                    thumbnail: 'https://via.placeholder.com/320x180/f43f5e/ffffff?text=Video+12',
+                    duration: '12:05',
+                    uploadDate: '2024-01-04',
+                    views: 42678,
+                    size: '480 MB',
+                    encodingStatus: 'completed',
+                    encodedVersions: ['1080p', '720p', '480p'],
+                    tags: ['마케팅', '인터뷰']
                 }
             ];
 
@@ -154,11 +250,43 @@ export default {
             this.totalPages = Math.ceil(this.totalVideos / this.perPage);
         },
 
+        selectFolder(folderId) {
+            this.selectedFolder = folderId;
+            this.selectedCategory = null; // 카테고리 선택 해제
+            this.currentPage = 1;
+            this.loadVideos();
+        },
+
+        selectCategory(categoryId) {
+            this.selectedCategory = categoryId;
+            this.selectedFolder = null; // 폴더 선택 해제
+            this.currentPage = 1;
+            this.loadVideos();
+        },
+
+        createFolder() {
+            // TODO: 폴더 생성 모달 표시
+            const folderName = prompt('새 폴더 이름을 입력하세요:');
+            if (folderName) {
+                console.log('새 폴더 생성:', folderName);
+                // TODO: API 호출
+                // await this.$api.post('/api/media/folders', { name: folderName });
+                this.loadFolders();
+            }
+        },
+
+        openCategoryManager() {
+            // TODO: 카테고리 관리 모달 표시
+            console.log('카테고리 관리 모달 열기');
+            this.navigateTo('/settings/categories');
+        },
+
         getFilterParams() {
             return {
                 search: this.filters.search,
                 status: this.filters.status,
-                category: this.filters.category,
+                folder: this.selectedFolder !== 'all' ? this.selectedFolder : null,
+                category: this.selectedCategory,
                 sort: this.filters.sort,
                 page: this.currentPage,
                 perPage: this.perPage
@@ -254,13 +382,24 @@ export default {
         bulkAddTags() {
             if (this.selectedVideos.length === 0) return;
             // TODO: 태그 추가 모달 표시
-            console.log('태그 추가:', this.selectedVideos);
+            const tags = prompt('추가할 태그를 입력하세요 (쉼표로 구분):');
+            if (tags) {
+                console.log('태그 추가:', this.selectedVideos, tags);
+                // TODO: API 호출
+            }
         },
 
         bulkMove() {
             if (this.selectedVideos.length === 0) return;
             // TODO: 폴더 이동 모달 표시
-            console.log('이동:', this.selectedVideos);
+            console.log('폴더 이동:', this.selectedVideos);
+            // 임시 구현
+            const folderNames = this.folders.map(f => f.name).join(', ');
+            const targetFolder = prompt(`이동할 폴더를 선택하세요:\n${folderNames}`);
+            if (targetFolder) {
+                console.log('선택한 폴더:', targetFolder);
+                // TODO: API 호출
+            }
         },
 
         async bulkDelete() {
@@ -276,10 +415,6 @@ export default {
 
     watch: {
         'filters.status'() {
-            this.currentPage = 1;
-            this.loadVideos();
-        },
-        'filters.category'() {
             this.currentPage = 1;
             this.loadVideos();
         },

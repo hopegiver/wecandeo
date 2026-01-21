@@ -1,274 +1,323 @@
-<div class="container-fluid p-4">
-    <!-- 페이지 헤더 -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-1">미디어 보관함</h2>
-            <p class="text-secondary mb-0">{{ totalVideos.toLocaleString() }}개의 동영상</p>
-        </div>
-        <button class="btn btn-primary" @click="goToUpload">
-            <i class="bi bi-cloud-upload me-1"></i>
-            업로드
-        </button>
-    </div>
-
-    <!-- 필터 및 검색 -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <div class="row g-3">
-                <!-- 검색 -->
-                <div class="col-12 col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control" placeholder="동영상 검색..." v-model="filters.search" @input="handleSearch">
-                    </div>
+<div class="media-library-container">
+    <!-- 왼쪽: 폴더 & 카테고리 사이드바 -->
+    <aside class="folder-sidebar">
+        <div class="folder-sidebar-content">
+            <!-- 폴더 섹션 -->
+            <div class="folder-section mb-4">
+                <div class="section-header d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0 text-secondary">폴더</h6>
+                    <button class="btn btn-sm btn-link text-primary p-0" @click="createFolder" title="새 폴더">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
                 </div>
-
-                <!-- 상태 필터 -->
-                <div class="col-6 col-md-2">
-                    <select class="form-select" v-model="filters.status">
-                        <option value="">모든 상태</option>
-                        <option value="completed">인코딩 완료</option>
-                        <option value="encoding">인코딩 중</option>
-                        <option value="queued">대기 중</option>
-                        <option value="failed">실패</option>
-                    </select>
-                </div>
-
-                <!-- 카테고리 필터 -->
-                <div class="col-6 col-md-2">
-                    <select class="form-select" v-model="filters.category">
-                        <option value="">모든 카테고리</option>
-                        <option value="marketing">마케팅</option>
-                        <option value="tutorial">튜토리얼</option>
-                        <option value="product">제품 소개</option>
-                        <option value="internal">내부용</option>
-                    </select>
-                </div>
-
-                <!-- 정렬 -->
-                <div class="col-6 col-md-2">
-                    <select class="form-select" v-model="filters.sort">
-                        <option value="date_desc">최신순</option>
-                        <option value="date_asc">오래된순</option>
-                        <option value="views_desc">조회수 높은순</option>
-                        <option value="views_asc">조회수 낮은순</option>
-                        <option value="size_desc">크기 큰순</option>
-                        <option value="size_asc">크기 작은순</option>
-                    </select>
-                </div>
-
-                <!-- 뷰 전환 -->
-                <div class="col-6 col-md-2">
-                    <div class="btn-group w-100">
-                        <button class="btn" :class="viewMode === 'grid' ? 'btn-primary' : 'btn-outline-secondary'" @click="viewMode = 'grid'">
-                            <i class="bi bi-grid-3x3-gap"></i>
-                        </button>
-                        <button class="btn" :class="viewMode === 'list' ? 'btn-primary' : 'btn-outline-secondary'" @click="viewMode = 'list'">
-                            <i class="bi bi-list-ul"></i>
-                        </button>
+                <div class="folder-tree">
+                    <div
+                        v-for="folder in folders"
+                        :key="folder.id"
+                        class="folder-item"
+                        :class="{ active: selectedFolder === folder.id }"
+                        @click="selectFolder(folder.id)"
+                    >
+                        <i class="bi bi-folder-fill me-2"></i>
+                        <span>{{ folder.name }}</span>
+                        <span class="badge bg-secondary-subtle text-secondary ms-auto">{{ folder.count }}</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 일괄 작업 (선택된 항목이 있을 때만 표시) -->
-            <div v-if="selectedVideos.length > 0" class="mt-3 pt-3 border-top">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="text-secondary">{{ selectedVideos.length }}개 선택됨</span>
-                    <button class="btn btn-sm btn-outline-primary" @click="addToPackage">
-                        <i class="bi bi-send me-1"></i>
-                        배포 패키지에 추가
+            <!-- 카테고리 섹션 -->
+            <div class="folder-section">
+                <div class="section-header d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0 text-secondary">카테고리</h6>
+                    <button class="btn btn-sm btn-link text-primary p-0" @click="openCategoryManager" title="카테고리 관리">
+                        <i class="bi bi-gear"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-secondary" @click="bulkAddTags">
-                        <i class="bi bi-tags me-1"></i>
-                        태그 추가
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary" @click="bulkMove">
-                        <i class="bi bi-folder me-1"></i>
-                        이동
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" @click="bulkDelete">
-                        <i class="bi bi-trash me-1"></i>
-                        삭제
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary ms-auto" @click="clearSelection">
-                        선택 해제
-                    </button>
+                </div>
+                <div class="folder-tree">
+                    <div
+                        v-for="category in categories"
+                        :key="category.id"
+                        class="folder-item"
+                        :class="{ active: selectedCategory === category.id }"
+                        @click="selectCategory(category.id)"
+                    >
+                        <i class="bi bi-tag-fill me-2" :style="{ color: category.color }"></i>
+                        <span>{{ category.name }}</span>
+                        <span class="badge bg-secondary-subtle text-secondary ms-auto">{{ category.count }}</span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </aside>
 
-    <!-- 그리드 뷰 -->
-    <div v-if="viewMode === 'grid'" class="row g-3">
-        <div v-for="video in videos" :key="video.id" class="col-12 col-sm-6 col-md-4 col-lg-3">
-            <div class="card border-0 shadow-sm h-100" :class="{ 'border-primary border-2': selectedVideos.includes(video.id) }">
-                <!-- 썸네일 -->
-                <div class="position-relative">
-                    <img :src="video.thumbnail" class="card-img-top" :alt="video.title" style="height: 180px; object-fit: cover; cursor: pointer;" @click="viewDetail(video.id)">
-                    <div class="position-absolute top-0 start-0 p-2">
-                        <input type="checkbox" class="form-check-input" :checked="selectedVideos.includes(video.id)" @change="toggleSelection(video.id)">
-                    </div>
-                    <div class="position-absolute bottom-0 end-0 m-2">
-                        <span class="badge bg-dark">{{ video.duration }}</span>
-                    </div>
-                    <!-- 인코딩 상태 -->
-                    <div v-if="video.encodingStatus !== 'completed'" class="position-absolute top-0 end-0 m-2">
-                        <span class="badge" :class="getStatusBadgeClass(video.encodingStatus)">
-                            {{ getStatusText(video.encodingStatus) }}
-                        </span>
-                    </div>
-                </div>
+    <!-- 오른쪽: 메인 콘텐츠 -->
+    <main class="media-content">
+        <!-- 페이지 헤더 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">{{ currentFolderName }}</h2>
+                <p class="text-secondary mb-0">{{ filteredCount.toLocaleString() }}개의 동영상</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary" @click="openCategoryManager">
+                    <i class="bi bi-gear me-1"></i>
+                    카테고리 관리
+                </button>
+                <button class="btn btn-primary" @click="goToUpload">
+                    <i class="bi bi-cloud-upload me-1"></i>
+                    업로드
+                </button>
+            </div>
+        </div>
 
-                <!-- 카드 본문 -->
-                <div class="card-body">
-                    <h6 class="card-title text-truncate mb-2" :title="video.title">{{ video.title }}</h6>
-                    <div class="small text-secondary mb-2">
-                        <div>{{ video.uploadDate }}</div>
-                        <div>{{ video.views.toLocaleString() }} 조회</div>
-                    </div>
-
-                    <!-- 태그 -->
-                    <div class="mb-2">
-                        <span v-for="tag in video.tags.slice(0, 2)" :key="tag" class="badge bg-light text-dark me-1">
-                            {{ tag }}
-                        </span>
-                        <span v-if="video.tags.length > 2" class="badge bg-light text-dark">
-                            +{{ video.tags.length - 2 }}
-                        </span>
-                    </div>
-
-                    <!-- 인코딩 버전 -->
-                    <div class="small mb-2">
-                        <div class="d-flex justify-content-between text-secondary">
-                            <span>인코딩</span>
-                            <span>{{ video.encodedVersions.length }}개 버전</span>
-                        </div>
-                        <div class="d-flex gap-1 mt-1">
-                            <span v-for="version in video.encodedVersions" :key="version" class="badge bg-secondary-subtle text-secondary" style="font-size: 0.7rem;">
-                                {{ version }}
-                            </span>
+        <!-- 필터 및 검색 -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- 검색 -->
+                    <div class="col-12 col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" placeholder="동영상 검색..." v-model="filters.search" @input="handleSearch">
                         </div>
                     </div>
 
-                    <!-- 액션 버튼 -->
-                    <div class="d-flex gap-1">
-                        <button class="btn btn-sm btn-outline-primary flex-grow-1" @click="viewDetail(video.id)">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary" @click="downloadVideo(video.id)">
-                            <i class="bi bi-download"></i>
-                        </button>
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
-                                <i class="bi bi-three-dots-vertical"></i>
+                    <!-- 상태 필터 -->
+                    <div class="col-6 col-md-2">
+                        <select class="form-select" v-model="filters.status">
+                            <option value="">모든 상태</option>
+                            <option value="completed">인코딩 완료</option>
+                            <option value="encoding">인코딩 중</option>
+                            <option value="queued">대기 중</option>
+                            <option value="failed">실패</option>
+                        </select>
+                    </div>
+
+                    <!-- 정렬 -->
+                    <div class="col-6 col-md-4">
+                        <select class="form-select" v-model="filters.sort">
+                            <option value="date_desc">최신순</option>
+                            <option value="date_asc">오래된순</option>
+                            <option value="views_desc">조회수 높은순</option>
+                            <option value="views_asc">조회수 낮은순</option>
+                            <option value="size_desc">크기 큰순</option>
+                            <option value="size_asc">크기 작은순</option>
+                        </select>
+                    </div>
+
+                    <!-- 뷰 전환 -->
+                    <div class="col-12 col-md-2">
+                        <div class="btn-group w-100">
+                            <button class="btn" :class="viewMode === 'grid' ? 'btn-primary' : 'btn-outline-secondary'" @click="viewMode = 'grid'">
+                                <i class="bi bi-grid-3x3-gap"></i>
                             </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" @click.prevent="editVideo(video.id)"><i class="bi bi-pencil me-2"></i>편집</a></li>
-                                <li><a class="dropdown-item" href="#" @click.prevent="addToPackage([video.id])"><i class="bi bi-send me-2"></i>배포 패키지 추가</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="#" @click.prevent="deleteVideo(video.id)"><i class="bi bi-trash me-2"></i>삭제</a></li>
-                            </ul>
+                            <button class="btn" :class="viewMode === 'list' ? 'btn-primary' : 'btn-outline-secondary'" @click="viewMode = 'list'">
+                                <i class="bi bi-list-ul"></i>
+                            </button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- 일괄 작업 (선택된 항목이 있을 때만 표시) -->
+                <div v-if="selectedVideos.length > 0" class="mt-3 pt-3 border-top">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="text-secondary">{{ selectedVideos.length }}개 선택됨</span>
+                        <button class="btn btn-sm btn-outline-primary" @click="addToPackage">
+                            <i class="bi bi-send me-1"></i>
+                            배포 패키지에 추가
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" @click="bulkAddTags">
+                            <i class="bi bi-tags me-1"></i>
+                            태그 추가
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" @click="bulkMove">
+                            <i class="bi bi-folder me-1"></i>
+                            폴더 이동
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" @click="bulkDelete">
+                            <i class="bi bi-trash me-1"></i>
+                            삭제
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary ms-auto" @click="clearSelection">
+                            선택 해제
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- 리스트 뷰 -->
-    <div v-if="viewMode === 'list'" class="card border-0 shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 40px;">
-                            <input type="checkbox" class="form-check-input" @change="toggleSelectAll" :checked="isAllSelected">
-                        </th>
-                        <th>동영상</th>
-                        <th style="width: 120px;">상태</th>
-                        <th style="width: 120px;">조회수</th>
-                        <th style="width: 120px;">업로드일</th>
-                        <th style="width: 100px;">크기</th>
-                        <th style="width: 150px;">인코딩 버전</th>
-                        <th style="width: 100px;">액션</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="video in videos" :key="video.id" :class="{ 'table-active': selectedVideos.includes(video.id) }">
-                        <td>
+        <!-- 그리드 뷰 -->
+        <div v-if="viewMode === 'grid'" class="row g-3">
+            <div v-for="video in videos" :key="video.id" class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                <div class="card border-0 shadow-sm h-100" :class="{ 'border-primary border-2': selectedVideos.includes(video.id) }">
+                    <!-- 썸네일 -->
+                    <div class="position-relative">
+                        <img :src="video.thumbnail" class="card-img-top" :alt="video.title" style="height: 180px; object-fit: cover; cursor: pointer;" @click="viewDetail(video.id)">
+                        <div class="position-absolute top-0 start-0 p-2">
                             <input type="checkbox" class="form-check-input" :checked="selectedVideos.includes(video.id)" @change="toggleSelection(video.id)">
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <img :src="video.thumbnail" class="rounded" style="width: 100px; height: 56px; object-fit: cover; cursor: pointer;" :alt="video.title" @click="viewDetail(video.id)">
-                                <div>
-                                    <div class="fw-medium">{{ video.title }}</div>
-                                    <small class="text-secondary">{{ video.duration }}</small>
-                                    <div class="mt-1">
-                                        <span v-for="tag in video.tags.slice(0, 3)" :key="tag" class="badge bg-light text-dark me-1" style="font-size: 0.7rem;">
-                                            {{ tag }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
+                        </div>
+                        <div class="position-absolute bottom-0 end-0 m-2">
+                            <span class="badge bg-dark">{{ video.duration }}</span>
+                        </div>
+                        <!-- 인코딩 상태 -->
+                        <div v-if="video.encodingStatus !== 'completed'" class="position-absolute top-0 end-0 m-2">
                             <span class="badge" :class="getStatusBadgeClass(video.encodingStatus)">
                                 {{ getStatusText(video.encodingStatus) }}
                             </span>
-                        </td>
-                        <td>{{ video.views.toLocaleString() }}</td>
-                        <td>{{ video.uploadDate }}</td>
-                        <td>{{ video.size }}</td>
-                        <td>
-                            <div class="d-flex flex-wrap gap-1">
+                        </div>
+                    </div>
+
+                    <!-- 카드 본문 -->
+                    <div class="card-body">
+                        <h6 class="card-title text-truncate mb-2" :title="video.title">{{ video.title }}</h6>
+                        <div class="small text-secondary mb-2">
+                            <div>{{ video.uploadDate }}</div>
+                            <div>{{ video.views.toLocaleString() }} 조회</div>
+                        </div>
+
+                        <!-- 태그 -->
+                        <div class="mb-2">
+                            <span v-for="tag in video.tags.slice(0, 2)" :key="tag" class="badge bg-light text-dark me-1">
+                                {{ tag }}
+                            </span>
+                            <span v-if="video.tags.length > 2" class="badge bg-light text-dark">
+                                +{{ video.tags.length - 2 }}
+                            </span>
+                        </div>
+
+                        <!-- 인코딩 버전 -->
+                        <div class="small mb-2">
+                            <div class="d-flex justify-content-between text-secondary">
+                                <span>인코딩</span>
+                                <span>{{ video.encodedVersions.length }}개 버전</span>
+                            </div>
+                            <div class="d-flex gap-1 mt-1 flex-wrap">
                                 <span v-for="version in video.encodedVersions" :key="version" class="badge bg-secondary-subtle text-secondary" style="font-size: 0.7rem;">
                                     {{ version }}
                                 </span>
                             </div>
-                        </td>
-                        <td>
-                            <div class="d-flex gap-1">
-                                <button class="btn btn-sm btn-outline-primary" @click="viewDetail(video.id)" title="상세보기">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#" @click.prevent="editVideo(video.id)"><i class="bi bi-pencil me-2"></i>편집</a></li>
-                                        <li><a class="dropdown-item" href="#" @click.prevent="downloadVideo(video.id)"><i class="bi bi-download me-2"></i>다운로드</a></li>
-                                        <li><a class="dropdown-item" href="#" @click.prevent="addToPackage([video.id])"><i class="bi bi-send me-2"></i>배포 패키지 추가</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-danger" href="#" @click.prevent="deleteVideo(video.id)"><i class="bi bi-trash me-2"></i>삭제</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+                        </div>
 
-    <!-- 페이지네이션 -->
-    <div class="d-flex justify-content-between align-items-center mt-4">
-        <div class="text-secondary">
-            {{ (currentPage - 1) * perPage + 1 }} - {{ Math.min(currentPage * perPage, totalVideos) }} / {{ totalVideos.toLocaleString() }}개
+                        <!-- 액션 버튼 -->
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-primary flex-grow-1" @click="viewDetail(video.id)">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" @click="downloadVideo(video.id)">
+                                <i class="bi bi-download"></i>
+                            </button>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" @click.prevent="editVideo(video.id)"><i class="bi bi-pencil me-2"></i>편집</a></li>
+                                    <li><a class="dropdown-item" href="#" @click.prevent="addToPackage([video.id])"><i class="bi bi-send me-2"></i>배포 패키지 추가</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="#" @click.prevent="deleteVideo(video.id)"><i class="bi bi-trash me-2"></i>삭제</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <nav>
-            <ul class="pagination mb-0">
-                <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                    <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)">이전</a>
-                </li>
-                <li v-for="page in displayPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
-                    <a class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
-                </li>
-                <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                    <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">다음</a>
-                </li>
-            </ul>
-        </nav>
-    </div>
+
+        <!-- 리스트 뷰 -->
+        <div v-if="viewMode === 'list'" class="card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 40px;">
+                                <input type="checkbox" class="form-check-input" @change="toggleSelectAll" :checked="isAllSelected">
+                            </th>
+                            <th>동영상</th>
+                            <th style="width: 120px;">상태</th>
+                            <th style="width: 120px;">조회수</th>
+                            <th style="width: 120px;">업로드일</th>
+                            <th style="width: 100px;">크기</th>
+                            <th style="width: 150px;">인코딩 버전</th>
+                            <th style="width: 100px;">액션</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="video in videos" :key="video.id" :class="{ 'table-active': selectedVideos.includes(video.id) }">
+                            <td>
+                                <input type="checkbox" class="form-check-input" :checked="selectedVideos.includes(video.id)" @change="toggleSelection(video.id)">
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img :src="video.thumbnail" class="rounded" style="width: 100px; height: 56px; object-fit: cover; cursor: pointer;" :alt="video.title" @click="viewDetail(video.id)">
+                                    <div>
+                                        <div class="fw-medium">{{ video.title }}</div>
+                                        <small class="text-secondary">{{ video.duration }}</small>
+                                        <div class="mt-1">
+                                            <span v-for="tag in video.tags.slice(0, 3)" :key="tag" class="badge bg-light text-dark me-1" style="font-size: 0.7rem;">
+                                                {{ tag }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge" :class="getStatusBadgeClass(video.encodingStatus)">
+                                    {{ getStatusText(video.encodingStatus) }}
+                                </span>
+                            </td>
+                            <td>{{ video.views.toLocaleString() }}</td>
+                            <td>{{ video.uploadDate }}</td>
+                            <td>{{ video.size }}</td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <span v-for="version in video.encodedVersions" :key="version" class="badge bg-secondary-subtle text-secondary" style="font-size: 0.7rem;">
+                                        {{ version }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-sm btn-outline-primary" @click="viewDetail(video.id)" title="상세보기">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#" @click.prevent="editVideo(video.id)"><i class="bi bi-pencil me-2"></i>편집</a></li>
+                                            <li><a class="dropdown-item" href="#" @click.prevent="downloadVideo(video.id)"><i class="bi bi-download me-2"></i>다운로드</a></li>
+                                            <li><a class="dropdown-item" href="#" @click.prevent="addToPackage([video.id])"><i class="bi bi-send me-2"></i>배포 패키지 추가</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="#" @click.prevent="deleteVideo(video.id)"><i class="bi bi-trash me-2"></i>삭제</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div class="text-secondary">
+                {{ (currentPage - 1) * perPage + 1 }} - {{ Math.min(currentPage * perPage, filteredCount) }} / {{ filteredCount.toLocaleString() }}개
+            </div>
+            <nav>
+                <ul class="pagination mb-0">
+                    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                        <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)">이전</a>
+                    </li>
+                    <li v-for="page in displayPages" :key="page" class="page-item" :class="{ active: page === currentPage }">
+                        <a class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
+                    </li>
+                    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                        <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">다음</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </main>
 </div>
