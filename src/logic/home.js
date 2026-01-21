@@ -59,7 +59,7 @@ export default {
                 {
                     id: 1,
                     title: '신제품 소개 영상',
-                    thumbnail: 'https://via.placeholder.com/160x90/6366f1/ffffff?text=Video+1',
+                    thumbnail: 'https://picsum.photos/160/90?random=1',
                     duration: '05:24',
                     views: 125430,
                     viewsChange: 34.2,
@@ -70,7 +70,7 @@ export default {
                 {
                     id: 2,
                     title: '사용자 가이드 - 시작하기',
-                    thumbnail: 'https://via.placeholder.com/160x90/10b981/ffffff?text=Video+2',
+                    thumbnail: 'https://picsum.photos/160/90?random=2',
                     duration: '08:15',
                     views: 98234,
                     viewsChange: 18.5,
@@ -81,7 +81,7 @@ export default {
                 {
                     id: 3,
                     title: '회사 소개 영상 2024',
-                    thumbnail: 'https://via.placeholder.com/160x90/f59e0b/ffffff?text=Video+3',
+                    thumbnail: 'https://picsum.photos/160/90?random=3',
                     duration: '03:42',
                     views: 87651,
                     viewsChange: -5.3,
@@ -92,7 +92,7 @@ export default {
                 {
                     id: 4,
                     title: '고급 기능 활용법',
-                    thumbnail: 'https://via.placeholder.com/160x90/ef4444/ffffff?text=Video+4',
+                    thumbnail: 'https://picsum.photos/160/90?random=4',
                     duration: '12:30',
                     views: 76543,
                     viewsChange: 12.1,
@@ -103,7 +103,7 @@ export default {
                 {
                     id: 5,
                     title: '월간 뉴스레터 1월',
-                    thumbnail: 'https://via.placeholder.com/160x90/8b5cf6/ffffff?text=Video+5',
+                    thumbnail: 'https://picsum.photos/160/90?random=5',
                     duration: '06:18',
                     views: 65432,
                     viewsChange: 8.7,

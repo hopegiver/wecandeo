@@ -11,10 +11,8 @@ export default {
             },
             selectedVideos: [],
             selectedFolder: 'all',
-            selectedCategory: null,
             videos: [],
             folders: [],
-            categories: [],
             totalVideos: 0,
             currentPage: 1,
             perPage: 12,
@@ -24,10 +22,6 @@ export default {
 
     computed: {
         currentFolderName() {
-            if (this.selectedCategory) {
-                const cat = this.categories.find(c => c.id === this.selectedCategory);
-                return cat ? cat.name : '미디어 보관함';
-            }
             const folder = this.folders.find(f => f.id === this.selectedFolder);
             return folder ? folder.name : '미디어 보관함';
         },
@@ -60,7 +54,6 @@ export default {
 
     async mounted() {
         await this.loadFolders();
-        await this.loadCategories();
         await this.loadVideos();
     },
 
@@ -80,20 +73,6 @@ export default {
             ];
         },
 
-        async loadCategories() {
-            // TODO: API 호출로 실제 데이터 로드
-            // const response = await this.$api.get('/api/media/categories');
-
-            // 임시 데이터
-            this.categories = [
-                { id: 'promo', name: '프로모션', color: '#6366f1', count: 234 },
-                { id: 'guide', name: '가이드', color: '#10b981', count: 189 },
-                { id: 'demo', name: '데모', color: '#f59e0b', count: 145 },
-                { id: 'case', name: '사례', color: '#ec4899', count: 98 },
-                { id: 'news', name: '뉴스', color: '#8b5cf6', count: 76 }
-            ];
-        },
-
         async loadVideos() {
             // TODO: API 호출로 실제 데이터 로드
             // const response = await this.$api.get('/api/media/videos', { params: this.getFilterParams() });
@@ -103,7 +82,7 @@ export default {
                 {
                     id: 1,
                     title: '신제품 소개 영상 2024',
-                    thumbnail: 'https://via.placeholder.com/320x180/6366f1/ffffff?text=Video+1',
+                    thumbnail: 'https://picsum.photos/320/180?random=1',
                     duration: '05:24',
                     uploadDate: '2024-01-15',
                     views: 125430,
@@ -115,7 +94,7 @@ export default {
                 {
                     id: 2,
                     title: '사용자 가이드 - 시작하기',
-                    thumbnail: 'https://via.placeholder.com/320x180/10b981/ffffff?text=Video+2',
+                    thumbnail: 'https://picsum.photos/320/180?random=2',
                     duration: '08:15',
                     uploadDate: '2024-01-14',
                     views: 98234,
@@ -127,7 +106,7 @@ export default {
                 {
                     id: 3,
                     title: '회사 소개 영상',
-                    thumbnail: 'https://via.placeholder.com/320x180/f59e0b/ffffff?text=Video+3',
+                    thumbnail: 'https://picsum.photos/320/180?random=3',
                     duration: '03:42',
                     uploadDate: '2024-01-13',
                     views: 87651,
@@ -139,7 +118,7 @@ export default {
                 {
                     id: 4,
                     title: '고급 기능 활용법',
-                    thumbnail: 'https://via.placeholder.com/320x180/ef4444/ffffff?text=Video+4',
+                    thumbnail: 'https://picsum.photos/320/180?random=4',
                     duration: '12:30',
                     uploadDate: '2024-01-12',
                     views: 76543,
@@ -151,7 +130,7 @@ export default {
                 {
                     id: 5,
                     title: '월간 뉴스레터 1월',
-                    thumbnail: 'https://via.placeholder.com/320x180/8b5cf6/ffffff?text=Video+5',
+                    thumbnail: 'https://picsum.photos/320/180?random=5',
                     duration: '06:18',
                     uploadDate: '2024-01-11',
                     views: 65432,
@@ -163,7 +142,7 @@ export default {
                 {
                     id: 6,
                     title: '제품 데모 영상',
-                    thumbnail: 'https://via.placeholder.com/320x180/ec4899/ffffff?text=Video+6',
+                    thumbnail: 'https://picsum.photos/320/180?random=6',
                     duration: '04:50',
                     uploadDate: '2024-01-10',
                     views: 54321,
@@ -175,7 +154,7 @@ export default {
                 {
                     id: 7,
                     title: '고객 성공 사례',
-                    thumbnail: 'https://via.placeholder.com/320x180/14b8a6/ffffff?text=Video+7',
+                    thumbnail: 'https://picsum.photos/320/180?random=7',
                     duration: '07:25',
                     uploadDate: '2024-01-09',
                     views: 43210,
@@ -187,7 +166,7 @@ export default {
                 {
                     id: 8,
                     title: '온보딩 가이드',
-                    thumbnail: 'https://via.placeholder.com/320x180/f97316/ffffff?text=Video+8',
+                    thumbnail: 'https://picsum.photos/320/180?random=8',
                     duration: '09:15',
                     uploadDate: '2024-01-08',
                     views: 38765,
@@ -199,7 +178,7 @@ export default {
                 {
                     id: 9,
                     title: '웨비나 녹화본',
-                    thumbnail: 'https://via.placeholder.com/320x180/06b6d4/ffffff?text=Video+9',
+                    thumbnail: 'https://picsum.photos/320/180?random=9',
                     duration: '45:20',
                     uploadDate: '2024-01-07',
                     views: 32145,
@@ -211,7 +190,7 @@ export default {
                 {
                     id: 10,
                     title: 'Q&A 세션',
-                    thumbnail: 'https://via.placeholder.com/320x180/84cc16/ffffff?text=Video+10',
+                    thumbnail: 'https://picsum.photos/320/180?random=10',
                     duration: '25:15',
                     uploadDate: '2024-01-06',
                     views: 28456,
@@ -223,7 +202,7 @@ export default {
                 {
                     id: 11,
                     title: '분기 실적 발표',
-                    thumbnail: 'https://via.placeholder.com/320x180/a855f7/ffffff?text=Video+11',
+                    thumbnail: 'https://picsum.photos/320/180?random=11',
                     duration: '18:40',
                     uploadDate: '2024-01-05',
                     views: 15234,
@@ -235,7 +214,7 @@ export default {
                 {
                     id: 12,
                     title: '고객 인터뷰',
-                    thumbnail: 'https://via.placeholder.com/320x180/f43f5e/ffffff?text=Video+12',
+                    thumbnail: 'https://picsum.photos/320/180?random=12',
                     duration: '12:05',
                     uploadDate: '2024-01-04',
                     views: 42678,
@@ -252,14 +231,6 @@ export default {
 
         selectFolder(folderId) {
             this.selectedFolder = folderId;
-            this.selectedCategory = null; // 카테고리 선택 해제
-            this.currentPage = 1;
-            this.loadVideos();
-        },
-
-        selectCategory(categoryId) {
-            this.selectedCategory = categoryId;
-            this.selectedFolder = null; // 폴더 선택 해제
             this.currentPage = 1;
             this.loadVideos();
         },
@@ -275,18 +246,11 @@ export default {
             }
         },
 
-        openCategoryManager() {
-            // TODO: 카테고리 관리 모달 표시
-            console.log('카테고리 관리 모달 열기');
-            this.navigateTo('/settings/categories');
-        },
-
         getFilterParams() {
             return {
                 search: this.filters.search,
                 status: this.filters.status,
                 folder: this.selectedFolder !== 'all' ? this.selectedFolder : null,
-                category: this.selectedCategory,
                 sort: this.filters.sort,
                 page: this.currentPage,
                 perPage: this.perPage
