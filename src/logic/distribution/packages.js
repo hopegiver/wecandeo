@@ -9,6 +9,9 @@ export default {
             filteredPackages: [],
             selectedPackages: [],
 
+            // 뷰 모드
+            viewMode: 'grid', // 'grid' 또는 'list'
+
             // 필터
             searchQuery: '',
             filterStatus: '',
@@ -17,7 +20,7 @@ export default {
 
             // 페이지네이션
             currentPage: 1,
-            itemsPerPage: 10,
+            itemsPerPage: 12, // 그리드 뷰에서 12개씩
 
             // 통계
             stats: {
@@ -32,6 +35,12 @@ export default {
     computed: {
         totalPages() {
             return Math.ceil(this.filteredPackages.length / this.itemsPerPage);
+        },
+
+        paginatedPackages() {
+            const start = (this.currentPage - 1) * this.itemsPerPage;
+            const end = start + this.itemsPerPage;
+            return this.filteredPackages.slice(start, end);
         },
 
         displayPages() {
@@ -51,8 +60,8 @@ export default {
         },
 
         allSelected() {
-            return this.filteredPackages.length > 0 &&
-                   this.selectedPackages.length === this.filteredPackages.length;
+            return this.paginatedPackages.length > 0 &&
+                   this.selectedPackages.length === this.paginatedPackages.length;
         }
     },
 
@@ -176,6 +185,86 @@ export default {
                             domainRestriction: '',
                             youtubeSync: false
                         }
+                    },
+                    {
+                        id: 6,
+                        name: '고객 사례 연구',
+                        description: '성공적인 고객 활용 사례',
+                        thumbnail: 'https://picsum.photos/seed/pkg6/300/200',
+                        videoCount: 7,
+                        visibility: 'public',
+                        status: 'active',
+                        views: 18760,
+                        updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+                        settings: {
+                            player: 'public-v2',
+                            domainRestriction: '',
+                            youtubeSync: true
+                        }
+                    },
+                    {
+                        id: 7,
+                        name: '웨비나 시리즈',
+                        description: '월간 웨비나 녹화본',
+                        thumbnail: 'https://picsum.photos/seed/pkg7/300/200',
+                        videoCount: 24,
+                        visibility: 'unlisted',
+                        status: 'active',
+                        views: 9430,
+                        updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+                        settings: {
+                            player: 'public-v2',
+                            domainRestriction: '',
+                            youtubeSync: false
+                        }
+                    },
+                    {
+                        id: 8,
+                        name: '브랜드 광고 캠페인',
+                        description: 'Q1 광고 소재',
+                        thumbnail: 'https://picsum.photos/seed/pkg8/300/200',
+                        videoCount: 6,
+                        visibility: 'public',
+                        status: 'inactive',
+                        views: 45200,
+                        updatedAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+                        settings: {
+                            player: 'public-v2',
+                            domainRestriction: '',
+                            youtubeSync: true
+                        }
+                    },
+                    {
+                        id: 9,
+                        name: '기술 지원 가이드',
+                        description: '기술팀 내부 참고자료',
+                        thumbnail: 'https://picsum.photos/seed/pkg9/300/200',
+                        videoCount: 18,
+                        visibility: 'private',
+                        status: 'active',
+                        views: 2140,
+                        updatedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+                        settings: {
+                            player: 'internal',
+                            domainRestriction: 'company.com',
+                            youtubeSync: false
+                        }
+                    },
+                    {
+                        id: 10,
+                        name: '투자자 설명회',
+                        description: '주주총회 및 IR 자료',
+                        thumbnail: 'https://picsum.photos/seed/pkg10/300/200',
+                        videoCount: 4,
+                        visibility: 'private',
+                        status: 'active',
+                        views: 856,
+                        updatedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+                        settings: {
+                            player: 'premium',
+                            domainRestriction: 'investor.company.com',
+                            youtubeSync: false
+                        }
                     }
                 ];
 
@@ -294,7 +383,7 @@ export default {
 
         toggleSelectAll(event) {
             if (event.target.checked) {
-                this.selectedPackages = this.filteredPackages.map(p => p.id);
+                this.selectedPackages = this.paginatedPackages.map(p => p.id);
             } else {
                 this.selectedPackages = [];
             }

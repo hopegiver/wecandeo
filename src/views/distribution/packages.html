@@ -14,7 +14,7 @@
     <!-- 필터 및 검색 -->
     <div class="card mb-4">
         <div class="card-body">
-            <div class="row g-3">
+            <div class="row g-3 align-items-center">
                 <div class="col-md-4">
                     <input type="text" class="form-control" placeholder="패키지 검색..."
                            v-model="searchQuery" @input="applyFilters">
@@ -44,9 +44,21 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <button class="btn btn-outline-secondary w-100" @click="resetFilters">
-                        <i class="bi bi-arrow-clockwise"></i> 초기화
-                    </button>
+                    <div class="btn-group w-100">
+                        <button class="btn btn-outline-secondary" @click="resetFilters" title="초기화">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary"
+                                :class="{ active: viewMode === 'grid' }"
+                                @click="viewMode = 'grid'" title="그리드 뷰">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary"
+                                :class="{ active: viewMode === 'list' }"
+                                @click="viewMode = 'list'" title="리스트 뷰">
+                            <i class="bi bi-list-ul"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -116,21 +128,118 @@
         </div>
     </div>
 
-    <!-- 패키지 목록 -->
-    <div class="card">
-        <div class="card-body">
-            <div v-if="loading" class="text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">로딩 중...</span>
+    <!-- 일괄 작업 툴바 -->
+    <div v-if="selectedPackages.length > 0" class="alert alert-info d-flex align-items-center mb-4">
+        <div class="flex-grow-1">
+            <strong>{{selectedPackages.length}}개</strong> 선택됨
+        </div>
+        <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-primary" @click="bulkActivate">
+                <i class="bi bi-check-circle"></i> 활성화
+            </button>
+            <button class="btn btn-outline-secondary" @click="bulkDeactivate">
+                <i class="bi bi-pause-circle"></i> 비활성화
+            </button>
+            <button class="btn btn-outline-danger" @click="bulkDelete">
+                <i class="bi bi-trash"></i> 삭제
+            </button>
+        </div>
+    </div>
+
+    <!-- 로딩 -->
+    <div v-if="loading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">로딩 중...</span>
+        </div>
+    </div>
+
+    <!-- 빈 상태 -->
+    <div v-else-if="filteredPackages.length === 0" class="card">
+        <div class="card-body text-center py-5 text-muted">
+            <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+            <p class="mb-0">패키지가 없습니다.</p>
+        </div>
+    </div>
+
+    <!-- 그리드 뷰 -->
+    <div v-else-if="viewMode === 'grid'" class="row g-4">
+        <div v-for="pkg in paginatedPackages" :key="pkg.id" class="col-sm-6 col-lg-4 col-xl-3">
+            <div class="card h-100 package-card" @click="viewPackage(pkg.id)">
+                <!-- 썸네일 -->
+                <div class="position-relative">
+                    <img :src="pkg.thumbnail" class="card-img-top"
+                         style="height: 200px; object-fit: cover" :alt="pkg.name">
+
+                    <!-- 체크박스 -->
+                    <div class="position-absolute top-0 start-0 p-2">
+                        <input type="checkbox" class="form-check-input bg-white"
+                               v-model="selectedPackages" :value="pkg.id"
+                               @click.stop>
+                    </div>
+
+                    <!-- 상태 배지 -->
+                    <div class="position-absolute top-0 end-0 p-2">
+                        <span class="badge" :class="getStatusClass(pkg.status)">
+                            {{getStatusLabel(pkg.status)}}
+                        </span>
+                    </div>
+
+                    <!-- 동영상 개수 -->
+                    <div class="position-absolute bottom-0 start-0 p-2">
+                        <span class="badge bg-dark bg-opacity-75">
+                            <i class="bi bi-film"></i> {{pkg.videoCount}}개
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 카드 내용 -->
+                <div class="card-body">
+                    <h6 class="card-title mb-2">{{pkg.name}}</h6>
+                    <p class="card-text text-muted small mb-3" style="height: 40px; overflow: hidden">
+                        {{pkg.description}}
+                    </p>
+
+                    <!-- 정보 -->
+                    <div class="d-flex align-items-center mb-2 small text-muted">
+                        <span class="badge" :class="getVisibilityClass(pkg.visibility)">
+                            <i :class="getVisibilityIcon(pkg.visibility)"></i>
+                            {{getVisibilityLabel(pkg.visibility)}}
+                        </span>
+                        <span class="ms-auto">
+                            <i class="bi bi-eye"></i> {{pkg.views | number}}
+                        </span>
+                    </div>
+
+                    <div class="text-muted small">
+                        <i class="bi bi-clock"></i> {{pkg.updatedAt | datetime}}
+                    </div>
+                </div>
+
+                <!-- 액션 버튼 -->
+                <div class="card-footer bg-white border-top-0">
+                    <div class="btn-group w-100" role="group">
+                        <button class="btn btn-sm btn-outline-secondary"
+                                @click.stop="viewPackage(pkg.id)" title="상세보기">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary"
+                                @click.stop="editPackage(pkg.id)" title="편집">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger"
+                                @click.stop="deletePackage(pkg.id)" title="삭제">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div v-else-if="filteredPackages.length === 0" class="text-center py-5 text-muted">
-                <i class="bi bi-inbox fs-1 d-block mb-3"></i>
-                <p class="mb-0">패키지가 없습니다.</p>
-            </div>
-
-            <div v-else class="table-responsive">
+    <!-- 리스트 뷰 -->
+    <div v-else class="card">
+        <div class="card-body">
+            <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
                         <tr>
@@ -148,7 +257,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="pkg in filteredPackages" :key="pkg.id">
+                        <tr v-for="pkg in paginatedPackages" :key="pkg.id">
                             <td>
                                 <input type="checkbox" class="form-check-input"
                                        v-model="selectedPackages" :value="pkg.id">
@@ -202,40 +311,43 @@
                     </tbody>
                 </table>
             </div>
-
-            <!-- 일괄 작업 -->
-            <div v-if="selectedPackages.length > 0" class="alert alert-info d-flex align-items-center mt-3">
-                <div class="flex-grow-1">
-                    <strong>{{selectedPackages.length}}개</strong> 선택됨
-                </div>
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-primary" @click="bulkActivate">
-                        <i class="bi bi-check-circle"></i> 활성화
-                    </button>
-                    <button class="btn btn-outline-secondary" @click="bulkDeactivate">
-                        <i class="bi bi-pause-circle"></i> 비활성화
-                    </button>
-                    <button class="btn btn-outline-danger" @click="bulkDelete">
-                        <i class="bi bi-trash"></i> 삭제
-                    </button>
-                </div>
-            </div>
-
-            <!-- 페이지네이션 -->
-            <nav class="mt-4" v-if="totalPages > 1">
-                <ul class="pagination justify-content-center mb-0">
-                    <li class="page-item" :class="{disabled: currentPage === 1}">
-                        <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)">이전</a>
-                    </li>
-                    <li class="page-item" v-for="page in displayPages" :key="page"
-                        :class="{active: page === currentPage}">
-                        <a class="page-link" href="#" @click.prevent="changePage(page)">{{page}}</a>
-                    </li>
-                    <li class="page-item" :class="{disabled: currentPage === totalPages}">
-                        <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">다음</a>
-                    </li>
-                </ul>
-            </nav>
         </div>
     </div>
+
+    <!-- 페이지네이션 -->
+    <nav class="mt-4" v-if="totalPages > 1">
+        <ul class="pagination justify-content-center mb-0">
+            <li class="page-item" :class="{disabled: currentPage === 1}">
+                <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)">이전</a>
+            </li>
+            <li class="page-item" v-for="page in displayPages" :key="page"
+                :class="{active: page === currentPage}">
+                <a class="page-link" href="#" @click.prevent="changePage(page)">{{page}}</a>
+            </li>
+            <li class="page-item" :class="{disabled: currentPage === totalPages}">
+                <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">다음</a>
+            </li>
+        </ul>
+    </nav>
 </div>
+
+<style>
+.package-card {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.package-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.package-card .card-footer {
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.package-card:hover .card-footer {
+    opacity: 1;
+}
+</style>
