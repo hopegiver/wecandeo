@@ -165,31 +165,20 @@
     <div v-else-if="viewMode === 'grid'" class="row g-4">
         <div v-for="pkg in paginatedPackages" :key="pkg.id" class="col-sm-6 col-lg-4 col-xl-3">
             <div class="card h-100 package-card" @click="viewPackage(pkg.id)">
-                <!-- 썸네일 -->
-                <div class="position-relative">
-                    <img :src="pkg.thumbnail" class="card-img-top"
-                         style="height: 200px; object-fit: cover" :alt="pkg.name">
-
-                    <!-- 체크박스 -->
-                    <div class="position-absolute top-0 start-0 p-2">
-                        <input type="checkbox" class="form-check-input bg-white"
+                <!-- 카드 헤더 -->
+                <div class="card-header bg-light d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" class="form-check-input"
                                v-model="selectedPackages" :value="pkg.id"
                                @click.stop>
-                    </div>
-
-                    <!-- 상태 배지 -->
-                    <div class="position-absolute top-0 end-0 p-2">
-                        <span class="badge" :class="getStatusClass(pkg.status)">
-                            {{getStatusLabel(pkg.status)}}
+                        <i class="bi bi-box-seam fs-4 text-primary"></i>
+                        <span class="badge bg-secondary-subtle text-secondary">
+                            <i class="bi bi-film"></i> {{pkg.videoCount}}
                         </span>
                     </div>
-
-                    <!-- 동영상 개수 -->
-                    <div class="position-absolute bottom-0 start-0 p-2">
-                        <span class="badge bg-dark bg-opacity-75">
-                            <i class="bi bi-film"></i> {{pkg.videoCount}}개
-                        </span>
-                    </div>
+                    <span class="badge" :class="getStatusClass(pkg.status)">
+                        {{getStatusLabel(pkg.status)}}
+                    </span>
                 </div>
 
                 <!-- 카드 내용 -->
@@ -263,13 +252,9 @@
                                        v-model="selectedPackages" :value="pkg.id">
                             </td>
                             <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="flex-shrink-0">
-                                        <img :src="pkg.thumbnail" class="rounded"
-                                             style="width: 60px; height: 40px; object-fit: cover"
-                                             :alt="pkg.name">
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-box-seam fs-5 text-primary"></i>
+                                    <div>
                                         <div class="fw-semibold">{{pkg.name}}</div>
                                         <div class="small text-muted">{{pkg.description}}</div>
                                     </div>
